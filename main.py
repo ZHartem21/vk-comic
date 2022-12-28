@@ -9,7 +9,7 @@ VK_API_URL = 'https://api.vk.com/method/{0}'
 VK_API_VER = 5.131
 
 
-def download_image(url, directory, filename):
+def download_image_in_folder(url, directory, filename):
     response = requests.get(url)
     response.raise_for_status()
     os.makedirs(directory, exist_ok=True)
@@ -23,7 +23,7 @@ def download_random_comic():
     response.raise_for_status()
     comic_image_url = response.json()['img']
     comic_commentary = response.json()['alt']
-    download_image(comic_image_url, 'images', f'{comic_number}.png')
+    download_image_in_folder(comic_image_url, 'images', f'{comic_number}.png')
     return (comic_number, comic_commentary)
 
 
