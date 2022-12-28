@@ -21,8 +21,9 @@ def download_random_comic():
     comic_number = random.randint(1, 2700)
     response = requests.get(COMIC_URL.format(comic_number))
     response.raise_for_status()
-    comic_image_url = response.json()['img']
-    comic_commentary = response.json()['alt']
+    comic_page_information = response.json()
+    comic_image_url = comic_page_information['img']
+    comic_commentary = comic_page_information['alt']
     download_image_in_folder(comic_image_url, 'images', f'{comic_number}.png')
     return (comic_number, comic_commentary)
 
