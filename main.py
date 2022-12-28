@@ -47,7 +47,7 @@ def upload_photo_to_server(upload_url, params, image, directory='images'):
                 'photo': photo
             }
         )
-    response.raise_for_status
+    response.raise_for_status()
     photo_upload_parameters = response.json()
     processed_photo = photo_upload_parameters['photo']
     server = photo_upload_parameters['server']
