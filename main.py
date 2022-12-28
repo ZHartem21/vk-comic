@@ -31,7 +31,12 @@ def download_random_comic():
     return comic_number, comic_commentary
 
 
-def get_photo_upload_address(params, group_id):
+def get_photo_upload_address(access_token, group_id):
+    params = {
+        'access_token': access_token,
+        'group_id': group_id,
+        'v': VK_API_VER,
+    }
     method = 'photos.getWallUploadServer'
     params['group_id'] = group_id
     response = requests.get(VK_API_URL.format(method), params)
@@ -56,11 +61,14 @@ def upload_photo_to_server(upload_url, params, image, directory=IMAGE_DIR):
     return processed_photo, server, photo_hash
 
 
-def save_photo(group_id, params, photo, server, photo_hash):
-    params['group_id'] = group_id
-    params['photo'] = photo
-    params['server'] = server
-    params['hash'] = photo_hash
+def save_photo(group_id, access_token, photo, server, photo_hash):
+    params = {
+        'access_token': access_token,
+        'group_id': group_id,
+        'server': server,
+        'hash': photo_hash,
+        'v': VK_API_VER,
+    }
     response = requests.post(VK_API_URL.format('photos.saveWallPhoto'), params)
     response.raise_for_status()
     saved_photo = response.json()['response'][0]
@@ -69,11 +77,15 @@ def save_photo(group_id, params, photo, server, photo_hash):
     return owner_id, media_id
 
 
-def post_photo(params, group_id, owner_id, media_id, message):
-    params['owner_id'] = f'-{group_id}'
-    params['message'] = message
-    params['from_group'] = 1
-    params['attachments'] = f'photo{owner_id}_{media_id}'
+def post_photo(access_token, group_id, owner_id, media_id, message):
+    params = {
+        'access_token': access_token,
+        'owner_id': f'-{group_id}',
+        'message': message,
+        'from_group': 1,
+        'attachments': f'photo{owner_id}_{media_id}',
+        'v': VK_API_VER,
+    }
     response = requests.post(
         VK_API_URL.format('wall.post'),
         params
@@ -84,28 +96,24 @@ def post_photo(params, group_id, owner_id, media_id, message):
 
 def main():
     load_dotenv('tokens.env')
-    vk_access_token = os.environ['VK_ACCESS_TOKEN']
-    vk_group_id = os.environ['VK_GROUP_ID']
-    params = {
-        'access_token': vk_access_token,
-        'v': VK_API_VER,
-    }
+    access_token = os.environ['VK_ACCESS_TOKEN']
+    group_id = os.environ['VK_GROUP_ID']
     comic_number, commentary = download_random_comic()
     try:
-        upload_address = get_photo_upload_address(params, vk_group_id)
+        upload_address = get_photo_upload_address(access_token, group_id)
         processed_photo, server, photo_hash = upload_photo_to_server(
             upload_address,
-            params,
+            access_token,
             f'{comic_number}.png'
         )
         owner_id, media_id = save_photo(
-            vk_group_id,
-            params,
+            group_id,
+            access_token,
             processed_photo,
             server,
             photo_hash
         )
-        post_photo(params, vk_group_id, owner_id, media_id, commentary)
+        post_photo(access_token, group_id, owner_id, media_id, commentary)
     finally:
         os.remove(os.path.join(IMAGE_DIR, 'f{comic_number}.png'))
 
