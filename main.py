@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 COMIC_URL = 'https://xkcd.com/{0}/info.0.json'
 VK_API_URL = 'https://api.vk.com/method/{0}'
 VK_API_VER = 5.131
+MIN_COMIC_NUMBER = 1
+MAX_COMIC_NUMBER = 2700
 
 
 def download_image_in_folder(url, directory, filename):
@@ -18,7 +20,7 @@ def download_image_in_folder(url, directory, filename):
 
 
 def download_random_comic():
-    comic_number = random.randint(1, 2700)
+    comic_number = random.randint(MIN_COMIC_NUMBER, MAX_COMIC_NUMBER)
     response = requests.get(COMIC_URL.format(comic_number))
     response.raise_for_status()
     comic_page_information = response.json()
