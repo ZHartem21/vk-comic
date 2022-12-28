@@ -51,15 +51,15 @@ def upload_photo_to_server(upload_url, params, image, directory='images'):
     photo_upload_parameters = response.json()
     processed_photo = photo_upload_parameters['photo']
     server = photo_upload_parameters['server']
-    hash = photo_upload_parameters['hash']
-    return processed_photo, server, hash
+    photo_hash = photo_upload_parameters['hash']
+    return processed_photo, server, photo_hash
 
 
-def save_photo(group_id, params, photo, server, hash):
+def save_photo(group_id, params, photo, server, photo_hash):
     params['group_id'] = group_id
     params['photo'] = photo
     params['server'] = server
-    params['hash'] = hash
+    params['hash'] = photo_hash
     response = requests.post(VK_API_URL.format('photos.saveWallPhoto'), params)
     response.raise_for_status()
     saved_photo = response.json()['response'][0]
@@ -96,7 +96,7 @@ def main():
     }
     comic_number, commentary = download_random_comic()
     upload_address = get_photo_upload_address(params, vk_group_id)
-    processed_photo, server, hash = upload_photo_to_server(
+    processed_photo, server, photo_hash = upload_photo_to_server(
         upload_address,
         params,
         f'{comic_number}.png'
@@ -106,7 +106,7 @@ def main():
         params,
         processed_photo,
         server,
-        hash
+        photo_hash
     )
     post_photo(params, vk_group_id, owner_id, media_id, commentary)
     delete_comic(comic_number)
