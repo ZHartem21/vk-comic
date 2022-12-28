@@ -27,7 +27,7 @@ def download_random_comic():
     comic_image_url = comic_page_information['img']
     comic_commentary = comic_page_information['alt']
     download_image_in_folder(comic_image_url, 'images', f'{comic_number}.png')
-    return (comic_number, comic_commentary)
+    return comic_number, comic_commentary
 
 
 def get_photo_upload_address(params, group_id):
@@ -52,7 +52,7 @@ def upload_photo_to_server(upload_url, params, image, directory='images'):
         processed_photo = photo_upload_parameters['photo']
         server = photo_upload_parameters['server']
         hash = photo_upload_parameters['hash']
-        return (processed_photo, server, hash)
+        return processed_photo, server, hash
 
 
 def save_photo(group_id, params, photo, server, hash):
@@ -65,7 +65,7 @@ def save_photo(group_id, params, photo, server, hash):
     saved_photo = response.json()['response'][0]
     owner_id = saved_photo['owner_id']
     media_id = saved_photo['id']
-    return (owner_id, media_id)
+    return owner_id, media_id
 
 
 def post_photo(params, group_id, owner_id, media_id, message):
