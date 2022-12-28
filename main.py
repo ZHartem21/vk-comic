@@ -9,6 +9,7 @@ VK_API_URL = 'https://api.vk.com/method/{0}'
 VK_API_VER = 5.131
 MIN_COMIC_NUMBER = 1
 MAX_COMIC_NUMBER = 2700
+IMAGE_DIR = 'images'
 
 
 def download_image_in_folder(url, directory, filename):
@@ -26,7 +27,7 @@ def download_random_comic():
     comic_page_information = response.json()
     comic_image_url = comic_page_information['img']
     comic_commentary = comic_page_information['alt']
-    download_image_in_folder(comic_image_url, 'images', f'{comic_number}.png')
+    download_image_in_folder(comic_image_url, IMAGE_DIR, f'{comic_number}.png')
     return comic_number, comic_commentary
 
 
@@ -38,7 +39,7 @@ def get_photo_upload_address(params, group_id):
     return response.json()['response']['upload_url']
 
 
-def upload_photo_to_server(upload_url, params, image, directory='images'):
+def upload_photo_to_server(upload_url, params, image, directory=IMAGE_DIR):
     with open(os.path.join(directory, image), 'rb') as photo:
         response = requests.post(
             upload_url,
@@ -81,10 +82,6 @@ def post_photo(params, group_id, owner_id, media_id, message):
     return
 
 
-def delete_comic(comic_number):
-    os.remove(f'images/{comic_number}.png')
-
-
 def main():
     load_dotenv('tokens.env')
     vk_access_token = os.environ['VK_ACCESS_TOKEN']
@@ -94,21 +91,23 @@ def main():
         'v': VK_API_VER,
     }
     comic_number, commentary = download_random_comic()
-    upload_address = get_photo_upload_address(params, vk_group_id)
-    processed_photo, server, photo_hash = upload_photo_to_server(
-        upload_address,
-        params,
-        f'{comic_number}.png'
-    )
-    owner_id, media_id = save_photo(
-        vk_group_id,
-        params,
-        processed_photo,
-        server,
-        photo_hash
-    )
-    post_photo(params, vk_group_id, owner_id, media_id, commentary)
-    delete_comic(comic_number)
+    try:
+        upload_address = get_photo_upload_address(params, vk_group_id)
+        processed_photo, server, photo_hash = upload_photo_to_server(
+            upload_address,
+            params,
+            f'{comic_number}.png'
+        )
+        owner_id, media_id = save_photo(
+            vk_group_id,
+            params,
+            processed_photo,
+            server,
+            photo_hash
+        )
+        post_photo(params, vk_group_id, owner_id, media_id, commentary)
+    finally:
+        os.remove(os.path.join(IMAGE_DIR, 'f{comic_number}.png'))
 
 
 if __name__ == '__main__':
