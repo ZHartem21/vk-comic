@@ -12,6 +12,14 @@ MAX_COMIC_NUMBER = 2700
 IMAGE_DIR = 'images'
 
 
+def check_for_vk_error(response):
+    if response['error']:
+        error = response['error']
+        return (f'Код ошибки - {error["error_code"]}: \{error["error_msg"]}')
+    else:
+        return False
+
+
 def download_random_comic():
     comic_number = random.randint(MIN_COMIC_NUMBER, MAX_COMIC_NUMBER)
     response = requests.get(COMIC_URL.format(comic_number))
@@ -37,6 +45,9 @@ def get_photo_upload_address(access_token, group_id):
     params['group_id'] = group_id
     response = requests.get(VK_API_URL.format(method), params)
     response.raise_for_status()
+    vk_api_error = check_for_vk_error(response)
+    if vk_api_error:
+        raise requests.HTTPError(vk_api_error)
     return response.json()['response']['upload_url']
 
 
@@ -50,6 +61,9 @@ def upload_photo_to_server(upload_url, params, image, directory=IMAGE_DIR):
             }
         )
     response.raise_for_status()
+    vk_api_error = check_for_vk_error(response)
+    if vk_api_error:
+        raise requests.HTTPError(vk_api_error)
     photo_upload_parameters = response.json()
     processed_photo = photo_upload_parameters['photo']
     server = photo_upload_parameters['server']
@@ -67,6 +81,9 @@ def save_photo(group_id, access_token, photo, server, photo_hash):
     }
     response = requests.post(VK_API_URL.format('photos.saveWallPhoto'), params)
     response.raise_for_status()
+    vk_api_error = check_for_vk_error(response)
+    if vk_api_error:
+        raise requests.HTTPError(vk_api_error)
     saved_photo = response.json()['response'][0]
     owner_id = saved_photo['owner_id']
     media_id = saved_photo['id']
@@ -87,6 +104,9 @@ def post_photo(access_token, group_id, owner_id, media_id, message):
         params
     )
     response.raise_for_status()
+    vk_api_error = check_for_vk_error(response)
+    if vk_api_error:
+        raise requests.HTTPError(vk_api_error)
 
 
 def main():
@@ -109,6 +129,8 @@ def main():
             photo_hash
         )
         post_photo(access_token, group_id, owner_id, media_id, commentary)
+    except requests.HTTPError():
+        print('Ошибка работы с API VK')
     finally:
         os.remove(os.path.join(IMAGE_DIR, 'f{comic_number}.png'))
 
