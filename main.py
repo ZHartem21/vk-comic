@@ -87,7 +87,6 @@ def post_photo(access_token, group_id, owner_id, media_id, message):
         params
     )
     response.raise_for_status()
-    return
 
 
 def main():
