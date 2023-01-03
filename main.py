@@ -12,14 +12,6 @@ MAX_COMIC_NUMBER = 2700
 IMAGE_DIR = 'images'
 
 
-def download_image_in_folder(url, directory, filename):
-    response = requests.get(url)
-    response.raise_for_status()
-    os.makedirs(directory, exist_ok=True)
-    with open(os.path.join(directory, filename), 'wb') as file:
-        file.write(response.content)
-
-
 def download_random_comic():
     comic_number = random.randint(MIN_COMIC_NUMBER, MAX_COMIC_NUMBER)
     response = requests.get(COMIC_URL.format(comic_number))
@@ -27,7 +19,11 @@ def download_random_comic():
     comic_page_information = response.json()
     comic_image_url = comic_page_information['img']
     comic_commentary = comic_page_information['alt']
-    download_image_in_folder(comic_image_url, IMAGE_DIR, f'{comic_number}.png')
+    response = requests.get(comic_image_url)
+    response.raise_for_status()
+    os.makedirs(IMAGE_DIR, exist_ok=True)
+    with open(os.path.join(IMAGE_DIR, f'{comic_number}.png'), 'wb') as file:
+        file.write(response.content)
     return comic_number, comic_commentary
 
 
